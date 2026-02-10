@@ -1,0 +1,31 @@
+import pandas as pd
+from sklearn.linear_model import LinearRegression
+import joblib
+
+# 1. Load the dataset
+print("Loading dataset...")
+df = pd.read_csv('flood.csv')
+
+# 2. Select the Features (The "Causes")
+# We will use the 5 most understandable features for your app
+features = ['MonsoonIntensity', 'Deforestation', 'RiverManagement', 
+            'Urbanization', 'ClimateChange']
+
+# 3. Select the Target (The "Effect")
+target = 'FloodProbability'
+
+X = df[features]
+y = df[target]
+
+# 4. Train the Model
+# Linear Regression fits best because your target is a percentage (e.g., 0.45)
+print("Training model...")
+model = LinearRegression()
+model.fit(X, y)
+
+# 5. Save the 'Brain'
+joblib.dump(model, 'flood_model.pkl')
+
+print("✅ Success! Model saved as 'flood_model.pkl'")
+print(f"   - It learned from {len(df)} records.")
+print(f"   - Features used: {features}")

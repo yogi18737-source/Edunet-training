@@ -1,0 +1,57 @@
+import pandas as pd
+import joblib
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import LabelEncoder
+
+print("⚙️ STARTING TRAINING PROCESS...")
+
+# --- MODEL 1: SEASONAL ALERTS (History) ---
+# Uses 'natural_disasters_2024.csv'
+try:
+    print("   1. Training Seasonal Alert Model...")
+    df_alert = pd.read_csv('natural_disasters_2024.csv')
+    df_alert['Date'] = pd.to_datetime(df_alert['Date'])
+    df_alert['Month'] = df_alert['Date'].dt.month
+    
+    # Target: 1 if Flood, 0 if not
+    data = df_alert[['Location', 'Month', 'Disaster_Type']].copy()
+    data['Is_Flood'] = data['Disaster_Type'].apply(lambda x: 1 if x == 'Flood' else 0)
+    
+    le = LabelEncoder()
+    data['Location_Code'] = le.fit_transform(data['Location'])
+    
+    X1 = data[['Location_Code', 'Month']]
+    y1 = data['Is_Flood']
+    
+    model1 = RandomForestClassifier(n_estimators=100, random_state=42)
+    model1.fit(X1, y1)
+    
+    joblib.dump(model1, 'alert_model.pkl')
+    joblib.dump(le, 'location_encoder.pkl')
+    print("      ✅ Alert Model Saved.")
+except Exception as e:
+    print(f"      ❌ Error training Alert Model: {e}")
+
+# --- MODEL 2: RISK SIMULATOR (Factors) ---
+# Uses 'flood.csv'
+try:
+    print("   2. Training Risk Simulator Model...")
+    df_sim = pd.read_csv('flood.csv')
+    
+    features = ['MonsoonIntensity', 'Deforestation', 'RiverManagement', 
+                'Urbanization', 'ClimateChange']
+    target = 'FloodProbability'
+    
+    X2 = df_sim[features]
+    y2 = df_sim[target]
+    
+    model2 = LinearRegression()
+    model2.fit(X2, y2)
+    
+    joblib.dump(model2, 'flood_model.pkl')
+    print("      ✅ Simulator Model Saved.")
+except Exception as e:
+    print(f"      ❌ Error training Simulator Model: {e}")
+
+print("✨ ALL SYSTEMS READY.")
